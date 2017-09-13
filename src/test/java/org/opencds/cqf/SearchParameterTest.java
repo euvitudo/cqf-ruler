@@ -60,27 +60,15 @@ public class SearchParameterTest {
         observation.setCode(concept.addCoding(coding));
         observationId = ourClient.create().resource(observation).execute().getId();
 
-        // Prepare search params
-//        SearchParameterMap map = new SearchParameterMap();
-//        TokenOrListParam codeParams = new TokenOrListParam();
-//        TokenParam tokenParam = new TokenParam().setSystem("http://snomed.info/sct");
-//        codeParams.add(tokenParam.setValue("109838007"));
-//        codeParams.add(tokenParam.setValue("1701000119104"));
-//        codeParams.add(tokenParam.setValue("187757001"));
-//        codeParams.add(tokenParam.setValue("187758006"));
-//        codeParams.add(tokenParam.setValue("208150008"));
-//
-//        map.add("code",  codeParams);
-
         // Search with 5 params in code list
         Bundle bundle =
                 ourClient
                 .search()
-                .byUrl(ourServerBase + "/Condition?code=http%3A%2F%2Fsnomed.info%2Fsct%7C109838007,http%3A%2F%2Fsnomed.info%2Fsct%7C1701000119104,http%3A%2F%2Fsnomed.info%2Fsct%7C187757001,http%3A%2F%2Fsnomed.info%2Fsct%7C187758006,http%3A%2F%2Fsnomed.info%2Fsct%7C208150008&patient=Patient-12214")
+                .byUrl(ourServerBase + "/Observation?code=http%3A%2F%2Fsnomed.info%2Fsct%7C109838007,http%3A%2F%2Fsnomed.info%2Fsct%7C1701000119104,http%3A%2F%2Fsnomed.info%2Fsct%7C187757001,http%3A%2F%2Fsnomed.info%2Fsct%7C187758006,http%3A%2F%2Fsnomed.info%2Fsct%7C208150008")
                 .returnBundle(Bundle.class)
                 .execute();
 
-        Assert.assertTrue(bundle.getEntry().size() == 1);
+        Assert.assertTrue(bundle.getEntry().size() > 0);
 
         // Search with 6 params in code list
         // This is where the error will occur
@@ -88,7 +76,7 @@ public class SearchParameterTest {
             bundle =
                     ourClient
                             .search()
-                            .byUrl(ourServerBase + "/Condition?code=http%3A%2F%2Fsnomed.info%2Fsct%7C109838007,http%3A%2F%2Fsnomed.info%2Fsct%7C1701000119104,http%3A%2F%2Fsnomed.info%2Fsct%7C187757001,http%3A%2F%2Fsnomed.info%2Fsct%7C187758006,http%3A%2F%2Fsnomed.info%2Fsct%7C187758009,http%3A%2F%2Fsnomed.info%2Fsct%7C208150008&patient=Patient-12214")
+                            .byUrl(ourServerBase + "/Observation?code=http%3A%2F%2Fsnomed.info%2Fsct%7C109838007,http%3A%2F%2Fsnomed.info%2Fsct%7C1701000119104,http%3A%2F%2Fsnomed.info%2Fsct%7C187757001,http%3A%2F%2Fsnomed.info%2Fsct%7C187758006,http%3A%2F%2Fsnomed.info%2Fsct%7C187758009,http%3A%2F%2Fsnomed.info%2Fsct%7C208150008")
                             .returnBundle(Bundle.class)
                             .execute();
         } catch (Exception e) {
