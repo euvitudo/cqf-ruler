@@ -50,7 +50,7 @@ public class CdsHooksTests {
                     )
                     .setSubject(new Reference("Patient/patient-123"));
 
-    @Test
+    //@Test
     public void testCdsHooksRequestErrors() {
         CdsRequest request;
         String json;
@@ -318,7 +318,7 @@ public class CdsHooksTests {
         // invalid prefetch
     }
 
-    @Test
+    //@Test
     public void testMedicationPrescribeContextStu3() {
         Gson gson = new Gson();
         Bundle bundle = new Bundle().setType(Bundle.BundleType.SEARCHSET);
@@ -339,7 +339,7 @@ public class CdsHooksTests {
         Assert.assertTrue(((Resource) context.getResources(CdsHooksProviders.FhirVersion.DSTU3).get(0)).fhirType().equals("MedicationRequest"));
     }
 
-    @Test
+    //@Test
     public void testMedicationPrescribeContextDstu2() {
         Gson gson = new Gson();
         MedicationOrder order =
