@@ -1,44 +1,37 @@
-package org.opencds.cqf.config;
+package org.opencds.cqf.management;
 
-import ca.uhn.fhir.jpa.rp.dstu3.LibraryResourceProvider;
-import org.cqframework.cql.cql2elm.CqlTranslator;
+import ca.uhn.fhir.model.primitive.IdDt;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
-import org.cqframework.cql.cql2elm.LibraryManager;
-import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
-import org.hl7.fhir.dstu3.model.IdType;
+import org.hl7.fhir.dstu3.model.Attachment;
 import org.opencds.cqf.cql.execution.LibraryLoader;
+import org.opencds.cqf.helpers.LibraryHelper;
 
 import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.opencds.cqf.helpers.LibraryHelper.*;
+public class JpaLibraryLoader implements LibraryLoader {
 
-public class STU3LibraryLoader implements LibraryLoader {
+    // TODO - maybe need 2 caches for STU3 and DSTU2 libraries?
+    private Map<String, Library> libraries;
+    private ServerManager manager;
 
-    private LibraryManager libraryManager;
-    private ModelManager modelManager;
-    private LibraryResourceProvider provider;
-    private Map<String, Library> libraries = new HashMap<>();
+    public JpaLibraryLoader(ServerManager manager) {
+        libraries = new HashMap<>();
+        this.manager = manager;
+    }
 
     public Map<String, Library> getLibraries() {
-        return this.libraries;
+        return libraries;
     }
     public void putLibrary(String id, Library library) {
         libraries.put(id, library);
-    }
-
-    public STU3LibraryLoader(LibraryResourceProvider provider, LibraryManager libraryManager, ModelManager modelManager) {
-        this.libraryManager = libraryManager;
-        this.modelManager = modelManager;
-        this.provider = provider;
     }
 
     private Library resolveLibrary(VersionedIdentifier libraryIdentifier) {
@@ -57,31 +50,18 @@ public class STU3LibraryLoader implements LibraryLoader {
                     libraryIdentifier.getId(), libraryIdentifier.getVersion(), library.getIdentifier().getVersion()));
         }
         else if (library == null) {
-            library = loadLibrary(libraryIdentifier);
+            library = fetchLibrary(libraryIdentifier);
             libraries.put(libraryIdentifier.getId(), library);
         }
 
         return library;
     }
 
-    public Library toElmLibrary(org.hl7.fhir.dstu3.model.Library library) {
-        InputStream is = null;
-        for (org.hl7.fhir.dstu3.model.Attachment content : library.getContent()) {
-            if (content.hasData()) {
-                is = new ByteArrayInputStream(content.getData());
-                if (content.getContentType().equals("application/elm+xml")) {
-                    return readLibrary(is);
-                } else if (content.getContentType().equals("text/cql")) {
-                    return translateLibrary(is, libraryManager, modelManager);
-                }
-            }
-        }
-        return null;
-    }
-
-    private Library loadLibrary(VersionedIdentifier libraryIdentifier) {
-        IdType id = new IdType(libraryIdentifier.getId());
-        org.hl7.fhir.dstu3.model.Library library = provider.getDao().read(id);
+    private Library fetchLibrary(VersionedIdentifier libraryIdentifier) {
+        org.hl7.fhir.dstu3.model.Library library =
+                (org.hl7.fhir.dstu3.model.Library) manager.getDataProvider()
+                        .resolveResourceProvider("Library")
+                        .getDao().read(new IdDt(libraryIdentifier.getId()));
 
         Library elmLibrary = toElmLibrary(library);
         if (elmLibrary != null) {
@@ -94,22 +74,37 @@ public class STU3LibraryLoader implements LibraryLoader {
                 .withVersion(libraryIdentifier.getVersion());
 
         ArrayList<CqlTranslatorException> errors = new ArrayList<>();
-        org.hl7.elm.r1.Library translatedLibrary = libraryManager.resolveLibrary(identifier, errors).getLibrary();
+        org.hl7.elm.r1.Library translatedLibrary = manager.getLibraryManager().resolveLibrary(identifier, errors).getLibrary();
 
         if (errors.size() > 0) {
-            throw new IllegalArgumentException(errorsToString(errors));
+            throw new IllegalArgumentException(LibraryHelper.errorsToString(errors));
         }
         try {
-            return readLibrary(
-                            new ByteArrayInputStream(
-                                    getTranslator("", libraryManager, modelManager)
-                                            .convertToXml(translatedLibrary).getBytes(StandardCharsets.UTF_8)
-                            )
-                    );
+            return LibraryHelper.readLibrary(
+                    new ByteArrayInputStream(
+                            LibraryHelper.getTranslator("", manager.getLibraryManager(), manager.getModelManager())
+                                    .convertToXml(translatedLibrary).getBytes(StandardCharsets.UTF_8)
+                    )
+            );
         } catch (JAXBException e) {
             throw new IllegalArgumentException(String.format("Errors occurred translating library %s%s.",
                     identifier.getId(), identifier.getVersion() != null ? ("-" + identifier.getVersion()) : ""));
         }
+    }
+
+    public Library toElmLibrary(org.hl7.fhir.dstu3.model.Library library) {
+        InputStream is;
+        for (Attachment content : library.getContent()) {
+            if (content.hasData()) {
+                is = new ByteArrayInputStream(content.getData());
+                if (content.getContentType().equals("application/elm+xml")) {
+                    return LibraryHelper.readLibrary(is);
+                } else if (content.getContentType().equals("text/cql")) {
+                    return LibraryHelper.translateLibrary(is, manager.getLibraryManager(), manager.getModelManager());
+                }
+            }
+        }
+        return null;
     }
 
     @Override

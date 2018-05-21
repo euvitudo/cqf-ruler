@@ -11,6 +11,8 @@ import org.hl7.fhir.dstu3.model.*;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.opencds.cqf.cql.execution.Context;
 import org.opencds.cqf.cql.runtime.DateTime;
+import org.opencds.cqf.data.IJpaDataProvider;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 import org.opencds.cqf.helpers.LibraryHelper;
 
 import java.math.BigDecimal;
@@ -19,8 +21,8 @@ import java.util.List;
 
 public class FHIRBundleResourceProvider extends JpaResourceProviderDstu3<Bundle> {
 
-    private JpaDataProvider provider;
-    public FHIRBundleResourceProvider(JpaDataProvider provider) {
+    private IJpaDataProvider provider;
+    public FHIRBundleResourceProvider(IJpaDataProvider provider) {
         this.provider = provider;
     }
 

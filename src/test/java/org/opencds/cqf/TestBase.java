@@ -11,18 +11,18 @@ public class TestBase {
 
     private static TestServer server;
 
-    //@BeforeClass
+    @BeforeClass
     public static void setup() throws Exception {
         server = new TestServer();
         server.start();
     }
 
-    //@AfterClass
+    @AfterClass
     public static void tearDown() throws Exception {
         server.stop();
     }
 
-    //@Test
+    @Test
     public void runMeasureEvaluationTests() throws IOException, JAXBException {
         MeasureEvaluationTests measureTests = new MeasureEvaluationTests(server);
         measureTests.patientMeasureASF_IIP_AllNumerator_AllDenominator_True();
@@ -34,7 +34,7 @@ public class TestBase {
         measureTests.populationMeasureCOL();
     }
 
-    //@Test
+    @Test
     public void runOpioidGuidanceTests() throws Exception {
         CdcOpioidGuidanceTests opioidTests = new CdcOpioidGuidanceTests(server);
         opioidTests.CdcOpioidGuidanceRecommendationFourTest_LongActingOpioid();
@@ -73,7 +73,7 @@ public class TestBase {
         opioidTests.CdcOpioidGuidanceRecommendationElevenTest_OpioidTriggerWithoutBenzo();
     }
 
-    //@Test
+    @Test
     public void runHedisCdsTests() throws IOException {
         HedisCdsHooksTests hedisTests = new HedisCdsHooksTests(server);
         hedisTests.BCSCdsHooksPatientViewTest();
@@ -82,7 +82,7 @@ public class TestBase {
         hedisTests.COLCdsHooksPatientViewTest();
     }
 
-    //@Test
+    @Test
     public void runDefinitionApplyTests() throws ClassNotFoundException {
         DefinitionApplyTests applyTests = new DefinitionApplyTests(server);
         applyTests.PlanDefinitionApplyTest();

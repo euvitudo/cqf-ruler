@@ -10,7 +10,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.opencds.cqf.providers.JpaDataProvider;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 import org.opencds.cqf.servlet.BaseServlet;
 
 import java.io.InputStream;
@@ -23,7 +23,7 @@ class TestServer {
     private FhirContext ourCtx = FhirContext.forDstu3();
     private Server ourServer;
     private String ourServerBase;
-    JpaDataProvider dataProvider;
+    JpaDataProviderStu3 dataProvider;
     int ourPort;
     IGenericClient ourClient;
 
@@ -51,7 +51,7 @@ class TestServer {
             }
         }
 
-        dataProvider = new JpaDataProvider(resourceProviders);
+        dataProvider = new JpaDataProviderStu3(resourceProviders);
 
         ourCtx.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
         ourCtx.getRestfulClientFactory().setSocketTimeout(1200 * 1000);

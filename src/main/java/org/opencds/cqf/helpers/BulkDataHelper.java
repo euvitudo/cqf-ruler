@@ -8,7 +8,7 @@ import org.hl7.fhir.dstu3.model.Coding;
 import org.hl7.fhir.dstu3.model.OperationOutcome;
 import org.hl7.fhir.dstu3.model.Resource;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.opencds.cqf.providers.JpaDataProvider;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 
 import java.util.*;
 
@@ -31,9 +31,9 @@ public class BulkDataHelper {
             )
     );
 
-    private JpaDataProvider provider;
+    private JpaDataProviderStu3 provider;
 
-    public BulkDataHelper(JpaDataProvider provider) {
+    public BulkDataHelper(JpaDataProviderStu3 provider) {
         this.provider = provider;
     }
 

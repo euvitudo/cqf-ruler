@@ -15,16 +15,18 @@ import org.hl7.fhir.dstu3.model.PlanDefinition;
 import org.hl7.fhir.instance.model.Bundle;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IIdType;
-import org.opencds.cqf.config.STU3LibraryLoader;
 import org.opencds.cqf.cql.data.DataProvider;
 import org.opencds.cqf.cql.data.fhir.BaseFhirDataProvider;
 import org.opencds.cqf.cql.data.fhir.FhirDataProviderDstu2;
 import org.opencds.cqf.cql.data.fhir.FhirDataProviderStu3;
 import org.opencds.cqf.cql.execution.Context;
 import org.opencds.cqf.cql.terminology.TerminologyProvider;
+import org.opencds.cqf.data.IJpaDataProvider;
+import org.opencds.cqf.data.JpaDataProviderStu3;
+import org.opencds.cqf.management.JpaLibraryLoader;
+import org.opencds.cqf.management.ServerManager;
 import org.opencds.cqf.providers.FHIRPlanDefinitionResourceProvider;
-import org.opencds.cqf.providers.JpaDataProvider;
-import org.opencds.cqf.providers.JpaTerminologyProvider;
+import org.opencds.cqf.terminology.JpaTerminologyProviderStu3;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,12 +34,10 @@ import java.util.List;
 
 public class CdsHooksProviders {
 
-    private JpaDataProvider jpaDataProvider;
-    public JpaDataProvider getJpaDataProvider() {
-        return jpaDataProvider;
+    private ServerManager manager;
+    public ServerManager getManager() {
+        return manager;
     }
-
-    private TerminologyProvider jpaTermSvc;
 
     private Library library;
 
@@ -81,24 +81,13 @@ public class CdsHooksProviders {
         return version == FhirVersion.DSTU2;
     }
 
-    public CdsHooksProviders(Collection<IResourceProvider> resourceProviders, String baseUrl, String service) {
-        // default data and terminology provider
-        jpaDataProvider = new JpaDataProvider(resourceProviders);
-        jpaDataProvider.setEndpoint(baseUrl);
-        jpaTermSvc = new JpaTerminologyProvider(
-                (ValueSetResourceProvider) jpaDataProvider.resolveResourceProvider("ValueSet"),
-                (CodeSystemResourceProvider) jpaDataProvider.resolveResourceProvider("CodeSystem")
-        );
-        jpaDataProvider.setTerminologyProvider(jpaTermSvc);
+    public CdsHooksProviders(ServerManager manager, String baseUrl, String service) {
+        this.manager = manager;
 
-        // resolve library loader
-        STU3LibraryLoader libraryLoader = new STU3LibraryLoader(
-                (LibraryResourceProvider) jpaDataProvider.resolveResourceProvider("Library"),
-                new LibraryManager(new ModelManager()), new ModelManager()
-        );
+        this.manager.getDataProvider().setEndpoint(baseUrl);
 
         // resolve plan definition
-        planDefinitionProvider = (FHIRPlanDefinitionResourceProvider) jpaDataProvider.resolveResourceProvider("PlanDefinition");
+        planDefinitionProvider = (FHIRPlanDefinitionResourceProvider) manager.getDataProvider().resolveResourceProvider("PlanDefinition");
         planDefinition = planDefinitionProvider.getDao().read(new IdType(service));
         if (planDefinition == null) {
             throw new IllegalArgumentException("Could not find PlanDefinition/" + service);
@@ -111,12 +100,12 @@ public class CdsHooksProviders {
         if (planDefinition.hasLibrary()) {
             IIdType libraryId = planDefinition.getLibraryFirstRep().getReferenceElement();
             if (libraryId.hasVersionIdPart()) {
-                library = libraryLoader.load(
+                library = manager.getLibraryLoader().load(
                         new VersionedIdentifier().withId(libraryId.getIdPart()).withVersion(libraryId.getVersionIdPart())
                 );
             }
             else {
-                library = libraryLoader.load(new VersionedIdentifier().withId(libraryId.getIdPart()));
+                library = manager.getLibraryLoader().load(new VersionedIdentifier().withId(libraryId.getIdPart()));
             }
         }
         else {
@@ -152,9 +141,9 @@ public class CdsHooksProviders {
         // resolve context
         context = new Context(library);
         // default providers/loaders
-        context.registerDataProvider("http://hl7.org/fhir", jpaDataProvider);
-        context.registerTerminologyProvider(jpaTermSvc);
-        context.registerLibraryLoader(libraryLoader);
+        context.registerDataProvider("http://hl7.org/fhir", manager.getDataProvider());
+        context.registerTerminologyProvider(manager.getDataProvider().getTerminologyProvider());
+        context.registerLibraryLoader(manager.getLibraryLoader());
         context.setExpressionCaching(true);
     }
 
@@ -176,7 +165,7 @@ public class CdsHooksProviders {
         if (modelUri == null) {
             modelUri = "http://hl7.org/fhir";
         }
-        dataProvider.setTerminologyProvider(jpaTermSvc);
+        dataProvider.setTerminologyProvider(manager.getDataProvider().getTerminologyProvider());
         client = dataProvider.getFhirClient();
         context.registerDataProvider(modelUri, dataProvider);
     }
@@ -200,7 +189,7 @@ public class CdsHooksProviders {
     }
 
     public List<Object> search(DiscoveryItem discoveryItem, String patientId) {
-        IGenericClient gClient = hasClient() ? client : jpaDataProvider.getFhirClient();
+        IGenericClient gClient = hasClient() ? client : manager.getDataProvider().getFhirClient();
         IQuery<IBaseBundle> query = gClient.search().forResource(discoveryItem.getResource());
         if (discoveryItem.isPatientCriteria()) {
             query = query.where(new TokenClientParam(discoveryItem.getPatientPath()).exactly().identifier(patientId));

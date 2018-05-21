@@ -6,18 +6,17 @@ import org.hl7.fhir.dstu3.formats.ParserType;
 import org.hl7.fhir.dstu3.model.*;
 import org.hl7.fhir.dstu3.terminologies.ValueSetExpander;
 import org.hl7.fhir.dstu3.utils.INarrativeGenerator;
-import org.hl7.fhir.dstu3.utils.IResourceValidator;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.exceptions.TerminologyServiceException;
 import org.opencds.cqf.exceptions.NotImplementedException;
-import org.opencds.cqf.providers.JpaDataProvider;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 
 import java.util.List;
 import java.util.Set;
 
 public class MockWorker implements IWorkerContext {
 
-    public MockWorker(JpaDataProvider provider) {
+    public MockWorker(JpaDataProviderStu3 provider) {
 
     }
 

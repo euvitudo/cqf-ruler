@@ -24,13 +24,13 @@
     <servlet>
         <servlet-name>bulkDataResults</servlet-name>
         <servlet-class>org.opencds.cqf.servlet.BulkDataServlet</servlet-class>
-        <load-on-startup>4</load-on-startup>
+        <load-on-startup>5</load-on-startup>
     </servlet>
 
     <servlet>
         <servlet-name>cdsServicesServlet</servlet-name>
         <servlet-class>org.opencds.cqf.servlet.CdsServicesServlet</servlet-class>
-        <load-on-startup>3</load-on-startup>
+        <load-on-startup>4</load-on-startup>
     </servlet>
 
     <servlet>
@@ -44,7 +44,7 @@
             <param-name>contextConfigLocation</param-name>
             <param-value>org.opencds.cqf.config.BaseFhirTesterConfig</param-value>
         </init-param>
-        <load-on-startup>2</load-on-startup>
+        <load-on-startup>3</load-on-startup>
     </servlet>
 
     <servlet>
@@ -58,7 +58,7 @@
             <param-name>FhirVersion</param-name>
             <param-value>DSTU2</param-value>
         </init-param>
-        <load-on-startup>1</load-on-startup>
+        <load-on-startup>2</load-on-startup>
     </servlet>
 
     <servlet>

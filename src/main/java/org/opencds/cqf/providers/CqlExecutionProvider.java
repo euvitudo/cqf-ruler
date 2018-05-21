@@ -4,11 +4,13 @@ import ca.uhn.fhir.jpa.rp.dstu3.LibraryResourceProvider;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.hl7.fhir.dstu3.model.*;
-import org.opencds.cqf.config.STU3LibraryLoader;
-import org.opencds.cqf.config.STU3LibrarySourceProvider;
+import org.opencds.cqf.data.IJpaDataProvider;
+import org.opencds.cqf.management.JpaLibraryLoader;
+import org.opencds.cqf.management.JpaLibrarySourceProvider;
 import org.opencds.cqf.cql.execution.Context;
-import org.opencds.cqf.cql.execution.LibraryLoader;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 import org.opencds.cqf.helpers.LibraryHelper;
+import org.opencds.cqf.management.ServerManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,48 +19,10 @@ import java.util.List;
  * Created by Bryn on 1/16/2017.
  */
 public class CqlExecutionProvider {
-    private JpaDataProvider provider;
+    private ServerManager manager;
 
-    public CqlExecutionProvider(JpaDataProvider provider) {
-        this.provider = provider;
-    }
-
-    private ModelManager modelManager;
-    private ModelManager getModelManager() {
-        if (modelManager == null) {
-            modelManager = new ModelManager();
-        }
-        return modelManager;
-    }
-
-    private LibraryManager libraryManager;
-    private LibraryManager getLibraryManager() {
-        if (libraryManager == null) {
-            libraryManager = new LibraryManager(getModelManager());
-            libraryManager.getLibrarySourceLoader().clearProviders();
-            libraryManager.getLibrarySourceLoader().registerProvider(getLibrarySourceProvider());
-        }
-        return libraryManager;
-    }
-
-    private STU3LibraryLoader libraryLoader;
-    private STU3LibraryLoader getLibraryLoader() {
-        if (libraryLoader == null) {
-            libraryLoader = new STU3LibraryLoader(getLibraryResourceProvider(), getLibraryManager(), getModelManager());
-        }
-        return libraryLoader;
-    }
-
-    private STU3LibrarySourceProvider librarySourceProvider;
-    private STU3LibrarySourceProvider getLibrarySourceProvider() {
-        if (librarySourceProvider == null) {
-            librarySourceProvider = new STU3LibrarySourceProvider(getLibraryResourceProvider());
-        }
-        return librarySourceProvider;
-    }
-
-    private LibraryResourceProvider getLibraryResourceProvider() {
-        return (LibraryResourceProvider)provider.resolveResourceProvider("Library");
+    public CqlExecutionProvider(ServerManager manager) {
+        this.manager = manager;
     }
 
     private List<Reference> cleanReferences(List<Reference> references) {
@@ -98,7 +62,7 @@ public class CqlExecutionProvider {
             for (Resource resource : instance.getContained()) {
                 if (resource instanceof Library) {
                     resource.setId(resource.getIdElement().getIdPart().replace("#", ""));
-                    getLibraryResourceProvider().getDao().update((Library) resource);
+                    ((LibraryResourceProvider) manager.getDataProvider().resolveResourceProvider("Library")).getDao().update((Library) resource);
 //                    getLibraryLoader().putLibrary(resource.getIdElement().getIdPart(), getLibraryLoader().toElmLibrary((Library) resource));
                 }
             }
@@ -170,14 +134,14 @@ public class CqlExecutionProvider {
 //        String source = String.format("library LocalLibrary using FHIR version '1.8' include FHIRHelpers version '1.8' called FHIRHelpers %s parameter %s %s parameter \"%%context\" %s define Expression: %s",
 //                buildIncludes(libraries), instance.fhirType(), instance.fhirType(), instance.fhirType(), cql);
 
-        org.cqframework.cql.elm.execution.Library library = LibraryHelper.translateLibrary(source, getLibraryManager(), getModelManager());
+        org.cqframework.cql.elm.execution.Library library = LibraryHelper.translateLibrary(source, manager.getLibraryManager(), manager.getModelManager());
         Context context = new Context(library);
         context.setParameter(null, instance.fhirType(), instance);
         context.setParameter(null, "%context", instance);
         context.setExpressionCaching(true);
-        context.registerLibraryLoader(getLibraryLoader());
+        context.registerLibraryLoader(manager.getLibraryLoader());
         context.setContextValue("Patient", patientId);
-        context.registerDataProvider("http://hl7.org/fhir", provider);
+        context.registerDataProvider("http://hl7.org/fhir", manager.getDataProvider());
         return context.resolveExpressionRef("Expression").evaluate(context);
     }
 }

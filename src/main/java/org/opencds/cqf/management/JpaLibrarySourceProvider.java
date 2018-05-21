@@ -1,4 +1,4 @@
-package org.opencds.cqf.config;
+package org.opencds.cqf.management;
 
 import ca.uhn.fhir.jpa.rp.dstu3.LibraryResourceProvider;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
@@ -8,14 +8,11 @@ import org.hl7.fhir.dstu3.model.IdType;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-/**
- * Created by Christopher on 1/12/2017.
- */
-public class STU3LibrarySourceProvider implements LibrarySourceProvider {
+public class JpaLibrarySourceProvider implements LibrarySourceProvider {
 
     private LibraryResourceProvider provider;
 
-    public STU3LibrarySourceProvider(LibraryResourceProvider provider) {
+    public JpaLibrarySourceProvider(LibraryResourceProvider provider) {
         this.provider = provider;
     }
 

@@ -90,7 +90,7 @@ public abstract class CdsRequest {
     }
 
     private List<Object> applyCqlToResources(List<Object> resources, CdsHooksProviders providers) {
-        FHIRBundleResourceProvider bundleResourceProvider = new FHIRBundleResourceProvider(providers.getJpaDataProvider());
+        FHIRBundleResourceProvider bundleResourceProvider = new FHIRBundleResourceProvider(providers.getManager().getDataProvider());
         for (Object res : resources) {
             try {
                 bundleResourceProvider.applyCql((Resource) res);

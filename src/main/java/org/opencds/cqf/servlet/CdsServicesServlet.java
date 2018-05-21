@@ -34,7 +34,7 @@ public class CdsServicesServlet extends BaseServlet {
             String baseUrl =
                     request.getRequestURL().toString()
                             .replace(request.getPathInfo(), "").replace(request.getServletPath(), "") + "/baseDstu3";
-            CdsHooksProviders cdsHooksProviders = new CdsHooksProviders(getResourceProviders(), baseUrl, request.getPathInfo().replace("/", ""));
+            CdsHooksProviders cdsHooksProviders = new CdsHooksProviders(manager, baseUrl, request.getPathInfo().replace("/", ""));
             // TODO - check for cdc-opioid-guidance base call - runs every recommendation
             CdsRequest cdsRequest = CdsRequestFactory.createRequest(request.getReader());
             response.setHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType());

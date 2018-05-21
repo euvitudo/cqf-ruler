@@ -16,9 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Christopher on 1/11/2017.
- */
 public class LibraryHelper {
 
     public static Library readLibrary(InputStream xmlStream) {

@@ -9,6 +9,7 @@ import org.hl7.fhir.dstu3.model.*;
 import org.hl7.fhir.dstu3.utils.StructureMapUtilities;
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.instance.model.api.IAnyResource;
+import org.opencds.cqf.data.JpaDataProviderStu3;
 import org.opencds.cqf.helpers.MockWorker;
 
 import java.util.List;
@@ -18,9 +19,9 @@ import java.util.stream.Collectors;
 
 public class FHIRStructureMapResourceProvider extends JpaResourceProviderDstu3<StructureMap> {
 
-    private JpaDataProvider provider;
+    private JpaDataProviderStu3 provider;
 
-    public FHIRStructureMapResourceProvider(JpaDataProvider provider) {
+    public FHIRStructureMapResourceProvider(JpaDataProviderStu3 provider) {
         this.provider = provider;
     }
 
