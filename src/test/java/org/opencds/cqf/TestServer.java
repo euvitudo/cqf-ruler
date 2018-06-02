@@ -54,7 +54,7 @@ class TestServer {
         dataProvider = new JpaDataProvider(resourceProviders);
 
         ourCtx.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
-        ourCtx.getRestfulClientFactory().setSocketTimeout(1200 * 1000);
+        ourCtx.getRestfulClientFactory().setSocketTimeout(1200 * 10000);
         ourServerBase = "http://localhost:" + ourPort + "/cqf-ruler/baseDstu3";
         ourClient = ourCtx.newRestfulGenericClient(ourServerBase);
         ourClient.registerInterceptor(new LoggingInterceptor(true));

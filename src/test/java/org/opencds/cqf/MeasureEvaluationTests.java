@@ -28,7 +28,9 @@ class MeasureEvaluationTests {
         this.server.putResource(measureEvalLocation + "hedis-asf-bundle.json", "");
         this.server.putResource(measureEvalLocation + "hedis-bcs-bundle.json", "");
         this.server.putResource(measureEvalLocation + "hedis-ccs-bundle.json", "");
-        this.server.putResource(measureEvalLocation + "hedis-col-bundle.json", "");
+//        this.server.putResource(measureEvalLocation + "hedis-col-bundle.json", "");
+        this.server.putResource(measureEvalLocation + "hedis-col-bundle-performance-boost.json", "");
+        this.server.putResource(measureEvalLocation + "hedis-col-terminology-grouping.json", "");
         this.server.putResource(measureEvalLocation + "hedis-dms-bundle.json", "");
     }
 
