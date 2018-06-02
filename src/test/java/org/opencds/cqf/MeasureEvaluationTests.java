@@ -267,7 +267,7 @@ class MeasureEvaluationTests {
 
         Parameters outParams = server.ourClient
                 .operation()
-                .onInstance(new IdDt("Measure", "measure-ccs"))
+                .onType(Measure.class)
                 .named("$care-gaps")
                 .withParameters(inParams)
                 .useHttpGet()
