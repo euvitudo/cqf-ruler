@@ -22,7 +22,6 @@ public class TestBase {
         server.stop();
     }
 
-//    TODO - fix these...
     @Test
     public void runMeasureEvaluationTests() throws IOException, JAXBException {
         MeasureEvaluationTests measureTests = new MeasureEvaluationTests(server);
@@ -31,14 +30,13 @@ public class TestBase {
         measureTests.patientMeasureCCS_PatientNotInInitialPopulation();
         measureTests.patientListMeasureCCS();
         measureTests.populationMeasureBCS();
-//        measureTests.populationMeasureCCS();
+        measureTests.populationMeasureCCS();
         measureTests.populationMeasureCOL();
-//        measureTests.bundleSourceDataMeasure_COL();
+        measureTests.bundleSourceDataMeasure_COL();
         measureTests.careGapTestBCS();
     }
 
-//    TODO - fix these...
-//    @Test
+    @Test
     public void runOpioidGuidanceTests() throws Exception {
         CdcOpioidGuidanceTests opioidTests = new CdcOpioidGuidanceTests(server);
         opioidTests.CdcOpioidGuidanceRecommendationFourTest_LongActingOpioid();

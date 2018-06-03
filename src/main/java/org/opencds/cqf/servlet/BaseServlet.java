@@ -5,19 +5,17 @@ import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.jpa.dao.DaoConfig;
 import ca.uhn.fhir.jpa.dao.IFhirSystemDao;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaConformanceProviderDstu3;
-import ca.uhn.fhir.jpa.provider.dstu3.JpaResourceProviderDstu3;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaSystemProviderDstu3;
 import ca.uhn.fhir.jpa.rp.dstu3.*;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
+import ca.uhn.fhir.jpa.term.IHapiTerminologySvcDstu3;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import org.hl7.fhir.dstu3.model.Bundle;
-import org.hl7.fhir.dstu3.model.CodeSystem;
 import org.hl7.fhir.dstu3.model.Meta;
-import org.hl7.fhir.dstu3.model.ValueSet;
 import org.opencds.cqf.cql.terminology.TerminologyProvider;
 import org.opencds.cqf.providers.*;
 import org.springframework.web.context.ContextLoaderListener;
@@ -32,6 +30,11 @@ import java.util.List;
  */
 public class BaseServlet extends RestfulServer {
 
+    private JpaDataProvider provider;
+    public JpaDataProvider getProvider() {
+        return provider;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     protected void initialize() throws ServletException {
@@ -43,6 +46,10 @@ public class BaseServlet extends RestfulServer {
 
         // Get the spring context from the web container (it's declared in web.xml)
         WebApplicationContext myAppCtx = ContextLoaderListener.getCurrentWebApplicationContext();
+
+        if (myAppCtx == null) {
+            throw new ServletException("WebApplicationContext is null");
+        }
 
         String resourceProviderBeanName = "myResourceProvidersDstu3";
         List<IResourceProvider> beans = myAppCtx.getBean(resourceProviderBeanName, List.class);
@@ -62,23 +69,6 @@ public class BaseServlet extends RestfulServer {
         setPagingProvider(myAppCtx.getBean(DatabaseBackedPagingProvider.class));
 
         /*
-		 * Enable CORS
-		 */
-//        CorsConfiguration config = new CorsConfiguration();
-//        CorsInterceptor corsInterceptor = new CorsInterceptor(config);
-//        config.addAllowedHeader("Origin");
-//        config.addAllowedHeader("Accept");
-//        config.addAllowedHeader("X-Requested-With");
-//        config.addAllowedHeader("Content-Type");
-//        config.addAllowedHeader("Access-Control-Request-Method");
-//        config.addAllowedHeader("Access-Control-Request-Headers");
-//        config.addAllowedOrigin("*");
-//        config.addExposedHeader("Location");
-//        config.addExposedHeader("Content-Location");
-//        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
-//        registerInterceptor(corsInterceptor);
-
-        /*
 		 * Load interceptors for the server from Spring (these are defined in FhirServerConfig.java)
 		 */
         Collection<IServerInterceptor> interceptorBeans = myAppCtx.getBeansOfType(IServerInterceptor.class).values();
@@ -86,10 +76,8 @@ public class BaseServlet extends RestfulServer {
             this.registerInterceptor(interceptor);
         }
 
-        JpaDataProvider provider = new JpaDataProvider(getResourceProviders());
-        JpaResourceProviderDstu3<ValueSet> vs = (ValueSetResourceProvider)   provider.resolveResourceProvider("ValueSet");
-        JpaResourceProviderDstu3<CodeSystem> cs = (CodeSystemResourceProvider) provider.resolveResourceProvider("CodeSystem");
-        TerminologyProvider terminologyProvider = new JpaTerminologyProvider(vs, cs);
+        provider = new JpaDataProvider(getResourceProviders());
+        TerminologyProvider terminologyProvider = new JpaTerminologyProvider(myAppCtx.getBean("terminologyService", IHapiTerminologySvcDstu3.class), getFhirContext());
         provider.setTerminologyProvider(terminologyProvider);
 
         resolveResourceProviders(provider);

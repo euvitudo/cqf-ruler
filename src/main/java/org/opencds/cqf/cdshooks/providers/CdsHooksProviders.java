@@ -40,8 +40,6 @@ public class CdsHooksProviders {
         return jpaDataProvider;
     }
 
-    private TerminologyProvider jpaTermSvc;
-
     private Library library;
 
     private IGenericClient client;
@@ -84,15 +82,8 @@ public class CdsHooksProviders {
         return version == FhirVersion.DSTU2;
     }
 
-    public CdsHooksProviders(Collection<IResourceProvider> resourceProviders, String baseUrl, String service) {
-        // default data and terminology provider
-        jpaDataProvider = new JpaDataProvider(resourceProviders);
-        jpaDataProvider.setEndpoint(baseUrl);
-        jpaTermSvc = new JpaTerminologyProvider(
-                (ValueSetResourceProvider) jpaDataProvider.resolveResourceProvider("ValueSet"),
-                (CodeSystemResourceProvider) jpaDataProvider.resolveResourceProvider("CodeSystem")
-        );
-        jpaDataProvider.setTerminologyProvider(jpaTermSvc);
+    public CdsHooksProviders(JpaDataProvider jpaDataProvider, String service) {
+        this.jpaDataProvider = jpaDataProvider;
 
         // resolve library loader
         STU3LibraryLoader libraryLoader = new STU3LibraryLoader(
@@ -156,7 +147,7 @@ public class CdsHooksProviders {
         context = new Context(library);
         // default providers/loaders
         context.registerDataProvider("http://hl7.org/fhir", jpaDataProvider);
-        context.registerTerminologyProvider(jpaTermSvc);
+        context.registerTerminologyProvider(jpaDataProvider.getTerminologyProvider());
         context.registerLibraryLoader(libraryLoader);
         context.setExpressionCaching(true);
     }
@@ -180,7 +171,7 @@ public class CdsHooksProviders {
             modelUri = "http://hl7.org/fhir";
         }
         dataProvider.getFhirContext().getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
-        dataProvider.setTerminologyProvider(jpaTermSvc);
+        dataProvider.setTerminologyProvider(jpaDataProvider.getTerminologyProvider());
         client = dataProvider.getFhirClient();
         context.registerDataProvider(modelUri, dataProvider);
     }
